@@ -1,0 +1,30 @@
+{
+    "name": "hacoidev/ophim-crawler",
+    "description": "ophim crawler",
+    "type": "package",
+    "require": {
+        "php": "^7",
+        "laravel/framework": "^6|^7|^8|^9",
+        "hacoidev/ophim-core": "dev-main"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Ophim\\Crawler\\OphimCrawler\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "hacoidev",
+            "email": "hacoi.dev@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ophim\\Crawler\\OphimCrawler\\OphimCrawlerServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable"
+}
