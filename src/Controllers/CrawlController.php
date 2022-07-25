@@ -22,47 +22,53 @@ class CrawlController extends CrudController
 {
     public function fetch(Request $request)
     {
-        $data = collect();
+        try {
+            $data = collect();
 
-        $request['link'] = preg_split('/[\n\r]+/', $request['link']);
+            $request['link'] = preg_split('/[\n\r]+/', $request['link']);
 
-        foreach ($request['link'] as $link) {
-            if (preg_match('/(.*?)(\/phim\/)(.*?)/', $link)) {
-                $response = json_decode(file_get_contents($link), true);
-                $data->push(collect($response['movie'])->only('name', 'slug')->toArray());
-            } else {
-                for ($i = $request['from']; $i <= $request['to']; $i++) {
-                    $response = json_decode(Http::timeout(3)->get($link, [
-                        'page' => $i
-                    ]), true);
-                    if ($response['status']) {
-                        $data->push(...$response['items']);
+            foreach ($request['link'] as $link) {
+                if (preg_match('/(.*?)(\/phim\/)(.*?)/', $link)) {
+                    $response = json_decode(file_get_contents($link), true);
+                    $data->push(collect($response['movie'])->only('name', 'slug')->toArray());
+                } else {
+                    for ($i = $request['from']; $i <= $request['to']; $i++) {
+                        $response = json_decode(Http::timeout(30)->get($link, [
+                            'page' => $i
+                        ]), true);
+                        if ($response['status']) {
+                            $data->push(...$response['items']);
+                        }
                     }
                 }
             }
-        }
 
-        return $data;
+            return $data;
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     public function showCrawlPage(Request $request)
     {
         $categories = Cache::remember('ophim_categories', config('ophim_cache_ttl', 5 * 60), function () {
-            $data = json_decode(file_get_contents(sprintf('%s/the-loai', Setting::get('ophim_api_url', 'https://ophim1.com'))), true) ?? [];
+            $data = json_decode(file_get_contents(sprintf('%s/the-loai', get_addon_option('ophim', 'domain', 'https://ophim1.com'))), true) ?? [];
             return collect($data)->pluck('name', 'name')->toArray();
         });
 
         $regions = Cache::remember('ophim_regions', config('ophim_cache_ttl', 5 * 60), function () {
-            $data = json_decode(file_get_contents(sprintf('%s/quoc-gia', Setting::get('ophim_api_url', 'https://ophim1.com'))), true) ?? [];
+            $data = json_decode(file_get_contents(sprintf('%s/quoc-gia', get_addon_option('ophim', 'domain', 'https://ophim1.com'))), true) ?? [];
             return collect($data)->pluck('name', 'name')->toArray();
         });
 
-        return view('crawler::ophim-crawler.crawl', compact('regions', 'categories'));
+        $fields = $this->movieUpdateOptions();
+
+        return view('crawler::ophim-crawler.crawl', compact('fields','regions', 'categories'));
     }
 
     public function crawl(Request $request)
     {
-        $pattern = sprintf('%s/phim/{slug}', Setting::get('ophim_api_url', 'https://ophim1.com'));
+        $pattern = sprintf('%s/phim/{slug}', get_addon_option('ophim', 'domain', 'https://ophim1.com'));
 
         try {
             $link = str_replace('{slug}', $request['slug'], $pattern);
@@ -72,5 +78,42 @@ class CrawlController extends CrudController
         }
 
         return response()->json(['message' => 'OK']);
+    }
+
+    protected function movieUpdateOptions(): array
+    {
+        return [
+            'Tiến độ phim' => [
+                'episodes' => 'Tập mới',
+                'status' => 'Trạng thái phim',
+                'episode_time' => 'Thời lượng tập phim',
+                'episode_current' => 'Số tập phim hiện tại',
+                'episode_total' => 'Tổng số tập phim',
+            ],
+            'Thông tin phim' => [
+                'name' => 'Tên phim',
+                'origin_name' => 'Tên gốc phim',
+                'content' => 'Mô tả nội dung phim',
+                'thumb_url' => 'Ảnh Thumb',
+                'poster_url' => 'Ảnh Poster',
+                'trailer_url' => 'Trailer URL',
+                'quality' => 'Chất lượng phim',
+                'language' => 'Ngôn ngữ',
+                'notify' => 'Nội dung thông báo',
+                'showtimes' => 'Giờ chiếu phim',
+                'publish_year' => 'Năm xuất bản',
+                'is_copyright' => 'Đánh dấu có bản quyền',
+            ],
+            'Phân loại' => [
+                'type' => 'Định dạng phim',
+                'is_shown_in_theater' => 'Đánh dấu phim chiếu rạp',
+                'actors' => 'Diễn viên',
+                'directors' => 'Đạo diễn',
+                'categories' => 'Thể loại',
+                'regions' => 'Khu vực',
+                'tags' => 'Từ khóa',
+                'studios' => 'Studio',
+            ]
+        ];
     }
 }

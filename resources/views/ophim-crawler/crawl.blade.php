@@ -92,8 +92,30 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             <div class="card">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-12">
-                            @include('ophim::base.fields.update_fields_option')
+                        <div class="col-12 mx-3">
+                            @foreach ($fields ?? [] as $groupLabel => $options)
+                                <div class="row mb-3">
+                                    <div class="col-12 px-0">
+                                        <input class="group-checkall"
+                                            data-target="{{ \Illuminate\Support\Str::slug($groupLabel) }}-group-checkbox"
+                                            id="{{ \Illuminate\Support\Str::slug($groupLabel) }}-check-all" type="checkbox">
+                                        <label
+                                            for="{{ \Illuminate\Support\Str::slug($groupLabel) }}-check-all">{{ $groupLabel }}</label>
+                                    </div>
+                                    @foreach ($options as $key => $option)
+                                        <div class="col-12 col-md-6 form-check checkbox">
+                                            <input
+                                                class="form-check-input {{ \Illuminate\Support\Str::slug($groupLabel) }}-group-checkbox"
+                                                id="{{ \Illuminate\Support\Str::slug($key) }}-{{ $loop->index }}"
+                                                type="checkbox" name="fields[]" value="{{ $key }}" checked>
+                                            <label class="d-inline"
+                                                for="{{ \Illuminate\Support\Str::slug($key) }}-{{ $loop->index }}">
+                                                {{ $option }}
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                     <button class="btn btn-secondary btn-previous">Trước</button>
@@ -245,8 +267,8 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             $('.selected-movie-count').html($('.movie-checkbox:checked').length)
         })
 
-        $('#check-all').change(function() {
-            $('.movie-checkbox').prop('checked', this.checked)
+        $('.group-checkall').change(function() {
+            $(`.${$(this).data('target')}`).prop('checked', this.checked);
         })
 
         const next = (el) => {
@@ -289,7 +311,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             $(`.crawling-movie[data-slug="${slug}"]`).addClass('text-info');
             $(`.crawling-movie[data-slug="${slug}"] .status`).html('Processing');
 
-            const fields = $("input[name='fields[]']")
+            const fields = $("input[name='fields[]']:checked")
                 .map(function() {
                     return $(this).val();
                 }).get();
@@ -301,7 +323,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
-                    "CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 body: JSON.stringify({
                     slug,

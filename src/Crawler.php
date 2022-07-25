@@ -10,22 +10,14 @@ use Ophim\Core\Models\Category;
 use Ophim\Core\Models\Director;
 use Ophim\Core\Models\Episode;
 use Ophim\Core\Models\Region;
+use Ophim\Core\Models\Tag;
+use Ophim\Core\Models\Studio;
+use Backpack\Settings\app\Models\Setting;
+use Illuminate\Support\Facades\Http;
+use Ophim\Core\Crawler\BaseCrawler;
 
-class Crawler
+class Crawler extends BaseCrawler
 {
-    protected $link;
-    protected $fields;
-    protected $excludedCategories;
-    protected $excludedRegions;
-
-    public function __construct($link, $fields, $excludedCategories = [], $excludedRegions = [])
-    {
-        $this->link = $link;
-        $this->fields = $fields;
-        $this->excludedCategories = $excludedCategories;
-        $this->excludedRegions = $excludedRegions;
-    }
-
     public function handle()
     {
         $payload = json_decode(file_get_contents($this->link), true);
@@ -50,7 +42,41 @@ class Crawler
         $this->syncDirectors($movie, $payload);
         $this->syncCategories($movie, $payload);
         $this->syncRegions($movie, $payload);
+        $this->syncTags($movie, $payload);
+        $this->syncStudios($movie, $payload);
         $this->updateEpisodes($movie, $payload);
+    }
+
+    public static function getMovieLinks(array $links, $from, $to): array
+    {
+        $list = [];
+        $pattern = sprintf('%s/phim/{slug}', get_addon_option('ophim', 'domain', 'https://ophim1.com'));
+        foreach ($links  as $link) {
+            if (static::isSingleMovie($link)) {
+                $list = array_merge($list, [$link]);
+            } else {
+                for ($i = $from; $i <= $to; $i++) {
+                    $response = json_decode(Http::timeout(10)->get($link, [
+                        'page' => $i
+                    ]), true);
+
+                    if (!$response['status']) {
+                        continue;
+                    }
+
+                    foreach ($response['items'] as $item) {
+                        $list = array_merge($list, [str_replace('{slug}', $item['slug'], $pattern)]);
+                    }
+                }
+            }
+        }
+
+        return $list;
+    }
+
+    protected static function isSingleMovie($link)
+    {
+        return preg_match('/(.*?)(\/phim\/)(.*?)/', $link);
     }
 
     protected function canHandleUpdating(Movie $movie)
@@ -109,7 +135,10 @@ class Crawler
 
     protected function getImage($slug, string $url): string
     {
-        if (empty($url)) return '';
+        if (!get_addon_option('ophim', 'download_image', false) || empty($url)) {
+            return $url;
+        }
+
         try {
             $contents = file_get_contents($url);
             $filename = substr($url, strrpos($url, '/') + 1);
@@ -127,7 +156,8 @@ class Crawler
 
         $actors = [];
         foreach ($payload['movie']['actor'] as $actor) {
-            $actors[] = Actor::firstOrCreate(['name' => $actor])->id;
+            if (!trim($actor)) continue;
+            $actors[] = Actor::firstOrCreate(['name' => trim($actor)])->id;
         }
         $movie->actors()->sync($actors);
     }
@@ -138,7 +168,8 @@ class Crawler
 
         $directors = [];
         foreach ($payload['movie']['director'] as $director) {
-            $directors[] = Director::firstOrCreate(['name' => $director])->id;
+            if (!trim($director)) continue;
+            $directors[] = Director::firstOrCreate(['name' => trim($director)])->id;
         }
         $movie->directors()->sync($directors);
     }
@@ -149,7 +180,8 @@ class Crawler
 
         $categories = [];
         foreach ($payload['movie']['category'] as $category) {
-            $categories[] = Category::firstOrCreate(['name' => $category['name']])->id;
+            if (!trim($category['name'])) continue;
+            $categories[] = Category::firstOrCreate(['name' => trim($category['name'])])->id;
         }
         $movie->categories()->sync($categories);
     }
@@ -160,9 +192,26 @@ class Crawler
 
         $regions = [];
         foreach ($payload['movie']['country'] as $region) {
-            $regions[] = Region::firstOrCreate(['name' => $region['name']])->id;
+            if (!trim($region['name'])) continue;
+            $regions[] = Region::firstOrCreate(['name' => trim($region['name'])])->id;
         }
         $movie->regions()->sync($regions);
+    }
+
+    protected function syncTags($movie, array $payload)
+    {
+        if (!in_array('tags', $this->fields)) return;
+
+        $tags = [];
+        $tags[] = Tag::firstOrCreate(['name' => trim($movie->name)])->id;
+        $tags[] = Tag::firstOrCreate(['name' => trim($movie->origin_name)])->id;
+
+        $movie->tags()->sync($tags);
+    }
+
+    protected function syncStudios($movie, array $payload)
+    {
+        if (!in_array('studios', $this->fields)) return;
     }
 
     protected function updateEpisodes($movie, $payload)
