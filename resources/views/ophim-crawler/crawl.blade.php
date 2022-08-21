@@ -3,7 +3,7 @@
 @php
 $defaultBreadcrumbs = [
     trans('backpack::crud.admin') => backpack_url('dashboard'),
-    'Crawler' => backpack_url('movie/crawl'),
+    'Crawler' => backpack_url('plugin/ophim-crawler'),
 ];
 
 $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
@@ -182,7 +182,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             $('.btn-load').html('Đang tải...');
 
             const fetchApi = async (link, from, to) => {
-                const response = await fetch("{{ backpack_url('movie/crawl/fetch') }}?" +
+                const response = await fetch("{{ backpack_url('plugin/ophim-crawler/fetch') }}?" +
                     new URLSearchParams({
                         link,
                         from,
@@ -319,7 +319,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             const excludedCategories = $("[name='excludedCategories[]']").val()
             const excludedRegions = $("[name='excludedRegions[]']").val()
 
-            const response = await fetch("{{ backpack_url('movie/crawl') }}", {
+            const response = await fetch("{{ backpack_url('plugin/ophim-crawler/crawl') }}", {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",

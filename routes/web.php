@@ -16,7 +16,9 @@ Route::group([
     ),
     'namespace'  => 'Ophim\Crawler\OphimCrawler\Controllers',
 ], function () {
-    Route::get('/movie/crawl', 'CrawlController@showCrawlPage');
-    Route::get('/movie/crawl/fetch', 'CrawlController@fetch');
-    Route::post('/movie/crawl', 'CrawlController@crawl');
+    Route::get('/plugin/ophim-crawler', 'CrawlController@showCrawlPage');
+    Route::get('/plugin/ophim-crawler/options', 'CrawlController@editOptions');
+    Route::post('/plugin/ophim-crawler/options', 'CrawlController@updateOptions');
+    Route::get('/plugin/ophim-crawler/fetch', 'CrawlController@fetch');
+    Route::post('/plugin/ophim-crawler/crawl', 'CrawlController@crawl');
 });

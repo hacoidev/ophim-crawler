@@ -11,10 +11,8 @@ use Ophim\Core\Models\Director;
 use Ophim\Core\Models\Episode;
 use Ophim\Core\Models\Region;
 use Ophim\Core\Models\Tag;
-use Ophim\Core\Models\Studio;
-use Backpack\Settings\app\Models\Setting;
 use Illuminate\Support\Facades\Http;
-use Ophim\Core\Crawler\BaseCrawler;
+use Ophim\Crawler\OphimCrawler\Contracts\BaseCrawler;
 
 class Crawler extends BaseCrawler
 {
@@ -50,7 +48,7 @@ class Crawler extends BaseCrawler
     public static function getMovieLinks(array $links, $from, $to): array
     {
         $list = [];
-        $pattern = sprintf('%s/phim/{slug}', get_addon_option('ophim', 'domain', 'https://ophim1.com'));
+        $pattern = sprintf('%s/phim/{slug}', get_plugin_option('ophim', 'domain', 'https://ophim1.com'));
         foreach ($links  as $link) {
             if (static::isSingleMovie($link)) {
                 $list = array_merge($list, [$link]);
@@ -135,7 +133,7 @@ class Crawler extends BaseCrawler
 
     protected function getImage($slug, string $url): string
     {
-        if (!get_addon_option('ophim', 'download_image', false) || empty($url)) {
+        if (!get_plugin_option('ophim', 'download_image', false) || empty($url)) {
             return $url;
         }
 
