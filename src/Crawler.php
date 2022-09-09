@@ -4,6 +4,7 @@ namespace Ophim\Crawler\OphimCrawler;
 
 use Ophim\Core\Models\Movie;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Ophim\Core\Models\Actor;
 use Ophim\Core\Models\Category;
@@ -226,7 +227,7 @@ class Crawler extends BaseCrawler
                         'type' => 'm3u8'
                     ], [
                         'link' => $episode['link_m3u8'],
-                        'slug' => 'tap-' . $episode['name']
+                        'slug' => 'tap-' . Str::slug($episode['name'])
                     ]);
                 }
                 if ($episode['link_embed']) {
@@ -237,7 +238,7 @@ class Crawler extends BaseCrawler
                         'type' => 'embed',
                     ], [
                         'link' => $episode['link_embed'],
-                        'slug' => 'tap-' . $episode['name']
+                        'slug' => 'tap-' . Str::slug($episode['name'])
                     ]);
                 }
             }

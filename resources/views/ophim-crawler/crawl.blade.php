@@ -97,19 +97,16 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                                 <div class="row mb-3">
                                     <div class="col-12 px-0">
                                         <input class="group-checkall"
-                                            data-target="{{ \Illuminate\Support\Str::slug($groupLabel) }}-group-checkbox"
-                                            id="{{ \Illuminate\Support\Str::slug($groupLabel) }}-check-all" type="checkbox">
-                                        <label
-                                            for="{{ \Illuminate\Support\Str::slug($groupLabel) }}-check-all">{{ $groupLabel }}</label>
+                                            data-target="{{ Str::slug($groupLabel) }}-group-checkbox"
+                                            id="{{ Str::slug($groupLabel) }}-check-all" type="checkbox">
+                                        <label for="{{ Str::slug($groupLabel) }}-check-all">{{ $groupLabel }}</label>
                                     </div>
                                     @foreach ($options as $key => $option)
                                         <div class="col-12 col-md-6 form-check checkbox">
-                                            <input
-                                                class="form-check-input {{ \Illuminate\Support\Str::slug($groupLabel) }}-group-checkbox"
-                                                id="{{ \Illuminate\Support\Str::slug($key) }}-{{ $loop->index }}"
-                                                type="checkbox" name="fields[]" value="{{ $key }}" checked>
-                                            <label class="d-inline"
-                                                for="{{ \Illuminate\Support\Str::slug($key) }}-{{ $loop->index }}">
+                                            <input class="form-check-input {{ Str::slug($groupLabel) }}-group-checkbox"
+                                                id="{{ Str::slug($key) }}-{{ $loop->index }}" type="checkbox"
+                                                name="fields[]" value="{{ $key }}" checked>
+                                            <label class="d-inline" for="{{ Str::slug($key) }}-{{ $loop->index }}">
                                                 {{ $option }}
                                             </label>
                                         </div>
@@ -227,8 +224,6 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             })
         })
 
-
-
         $('.btn-process').click(function() {
             const values = $(".movie-checkbox:checked")
                 .map(function() {
@@ -261,6 +256,11 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
 
         $('.btn-previous').click(function() {
             prev(this);
+        })
+
+        $('#check-all').change(function() {
+            $('.movie-checkbox').prop('checked', $(this).prop('checked'))
+            $('.selected-movie-count').html($('.movie-checkbox:checked').length)
         })
 
         $(document).on('change', '.movie-checkbox', function() {

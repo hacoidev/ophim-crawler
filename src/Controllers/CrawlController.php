@@ -43,7 +43,7 @@ class CrawlController extends CrudController
                 }
             }
 
-            return $data;
+            return $data->shuffle();
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
