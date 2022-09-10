@@ -12,29 +12,34 @@ use Ophim\Core\Models\Director;
 use Ophim\Core\Models\Episode;
 use Ophim\Core\Models\Region;
 use Ophim\Core\Models\Tag;
-use Illuminate\Support\Facades\Http;
 use Ophim\Crawler\OphimCrawler\Contracts\BaseCrawler;
 
 class Crawler extends BaseCrawler
 {
     public function handle()
     {
-        $payload = json_decode(file_get_contents($this->link), true);
+        $payload = json_decode($body = file_get_contents($this->link), true);
 
         $this->checkIsInExcludedList($payload);
 
         $info = $this->transformData($payload);
 
-        $movie = Movie::where('name', $info['name'])->where('origin_name', $info['origin_name'])->first();
+        $movie = Movie::where('update_handler', static::class)
+            ->where('update_identity', $payload['movie']['_id'])
+            ->first();
 
         if ($movie) {
-            if (!$this->canHandleUpdating($movie)) {
+            if (!$this->hasChange($movie, md5($body))) {
                 return;
             }
 
-            $movie->update(collect($info)->only($this->fields)->toArray());
+            $movie->update(collect($info)->only($this->fields)->merge(['update_checksum' => md5($body)])->toArray());
         } else {
-            $movie = Movie::create($info->merge(['update_handler' => static::class])->all());
+            $movie = Movie::create($info->merge([
+                'update_handler' => static::class,
+                'update_identity' => $payload['movie']['_id'],
+                'update_checksum' => md5($body)
+            ])->all());
         }
 
         $this->syncActors($movie, $payload);
@@ -46,53 +51,21 @@ class Crawler extends BaseCrawler
         $this->updateEpisodes($movie, $payload);
     }
 
-    public static function getMovieLinks(array $links, $from, $to): array
+    protected function hasChange(Movie $movie, $checksum)
     {
-        $list = [];
-        $pattern = sprintf('%s/phim/{slug}', get_plugin_option('ophim', 'domain', 'https://ophim1.com'));
-        foreach ($links  as $link) {
-            if (static::isSingleMovie($link)) {
-                $list = array_merge($list, [$link]);
-            } else {
-                for ($i = $from; $i <= $to; $i++) {
-                    $response = json_decode(Http::timeout(10)->get($link, [
-                        'page' => $i
-                    ]), true);
-
-                    if (!$response['status']) {
-                        continue;
-                    }
-
-                    foreach ($response['items'] as $item) {
-                        $list = array_merge($list, [str_replace('{slug}', $item['slug'], $pattern)]);
-                    }
-                }
-            }
-        }
-
-        return $list;
-    }
-
-    protected static function isSingleMovie($link)
-    {
-        return preg_match('/(.*?)(\/phim\/)(.*?)/', $link);
-    }
-
-    protected function canHandleUpdating(Movie $movie)
-    {
-        return $movie->update_handler == static::class;
+        return $movie->update_checksum != $checksum;
     }
 
     protected function checkIsInExcludedList($payload)
     {
         $newCategories = collect($payload['movie']['category'])->pluck('name')->toArray();
         if (array_intersect($newCategories, $this->excludedCategories)) {
-            throw new \Exception("In excluded categories");
+            throw new \Exception("Thuộc thể loại đã loại trừ");
         }
 
         $newRegions = collect($payload['movie']['country'])->pluck('name')->toArray();
         if (array_intersect($newRegions, $this->excludedRegions)) {
-            throw new \Exception("In excluded regions");
+            throw new \Exception("Thuộc quốc gia đã loại trừ");
         }
     }
 
@@ -134,7 +107,7 @@ class Crawler extends BaseCrawler
 
     protected function getImage($slug, string $url): string
     {
-        if (!get_plugin_option('ophim', 'download_image', false) || empty($url)) {
+        if (!config('ophim_crawler.download_image', false) || empty($url)) {
             return $url;
         }
 

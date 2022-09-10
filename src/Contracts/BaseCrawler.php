@@ -17,6 +17,5 @@ abstract class BaseCrawler
         $this->excludedRegions = $excludedRegions;
     }
 
-    abstract public static function getMovieLinks(array $links, $from, $to): array;
     abstract public function handle();
 }

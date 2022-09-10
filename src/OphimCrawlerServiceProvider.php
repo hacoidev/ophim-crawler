@@ -35,6 +35,6 @@ class OphimCrawlerServiceProvider extends SP
     public function boot()
     {
         $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'crawler');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'ophim-crawler');
     }
 }

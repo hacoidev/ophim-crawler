@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Ophim\Crawler\OphimCrawler\Crawler;
+use Prologue\Alerts\Facades\Alert;
 
 /**
  * Class CrawlController
@@ -52,23 +53,23 @@ class CrawlController extends CrudController
     public function showCrawlPage(Request $request)
     {
         $categories = Cache::remember('ophim_categories', config('ophim_cache_ttl', 5 * 60), function () {
-            $data = json_decode(file_get_contents(sprintf('%s/the-loai', get_plugin_option('ophim', 'domain', 'https://ophim1.com'))), true) ?? [];
+            $data = json_decode(file_get_contents(sprintf('%s/the-loai', config('ophim_crawler.domain', 'https://ophim1.com'))), true) ?? [];
             return collect($data)->pluck('name', 'name')->toArray();
         });
 
         $regions = Cache::remember('ophim_regions', config('ophim_cache_ttl', 5 * 60), function () {
-            $data = json_decode(file_get_contents(sprintf('%s/quoc-gia', get_plugin_option('ophim', 'domain', 'https://ophim1.com'))), true) ?? [];
+            $data = json_decode(file_get_contents(sprintf('%s/quoc-gia', config('ophim_crawler.domain', 'https://ophim1.com'))), true) ?? [];
             return collect($data)->pluck('name', 'name')->toArray();
         });
 
         $fields = $this->movieUpdateOptions();
 
-        return view('crawler::ophim-crawler.crawl', compact('fields','regions', 'categories'));
+        return view('ophim-crawler::crawl', compact('fields', 'regions', 'categories'));
     }
 
     public function crawl(Request $request)
     {
-        $pattern = sprintf('%s/phim/{slug}', get_plugin_option('ophim', 'domain', 'https://ophim1.com'));
+        $pattern = sprintf('%s/phim/{slug}', config('ophim_crawler.domain', 'https://ophim1.com'));
 
         try {
             $link = str_replace('{slug}', $request['slug'], $pattern);
