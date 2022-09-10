@@ -33,7 +33,6 @@ class CrawlerSettingController extends CrudController
      */
     public function editOptions()
     {
-        dd(Option::get('domain'));
         $setting = Option::getEntry();
 
         $this->data['entry'] = $setting;
