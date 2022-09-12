@@ -5,7 +5,8 @@
     "require": {
         "php": "^7|^8",
         "laravel/framework": "^6|^7|^8|^9",
-        "hacoidev/ophim-core": "dev-main"
+        "hacoidev/ophim-core": "dev-main",
+        "intervention/image": "^2.7"
     },
     "license": "MIT",
     "autoload": {

@@ -4,6 +4,7 @@ namespace Ophim\Crawler\OphimCrawler;
 
 use Ophim\Core\Models\Movie;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Ophim\Core\Models\Actor;
@@ -13,6 +14,7 @@ use Ophim\Core\Models\Episode;
 use Ophim\Core\Models\Region;
 use Ophim\Core\Models\Tag;
 use Ophim\Crawler\OphimCrawler\Contracts\BaseCrawler;
+use Intervention\Image\ImageManagerStatic as Image;
 
 class Crawler extends BaseCrawler
 {
@@ -22,17 +24,17 @@ class Crawler extends BaseCrawler
 
         $this->checkIsInExcludedList($payload);
 
-        $info = $this->transformData($payload);
-
         $movie = Movie::where('update_handler', static::class)
             ->where('update_identity', $payload['movie']['_id'])
             ->first();
 
-        if ($movie) {
-            if (!$this->hasChange($movie, md5($body))) {
-                return;
-            }
+        if (!$this->hasChange($movie, md5($body))) {
+            return;
+        }
 
+        $info = $this->transformData($payload);
+
+        if ($movie) {
             $movie->update(collect($info)->only($this->fields)->merge(['update_checksum' => md5($body)])->toArray());
         } else {
             $movie = Movie::create($info->merge([
@@ -107,17 +109,28 @@ class Crawler extends BaseCrawler
 
     protected function getImage($slug, string $url): string
     {
-        if (!config('ophim_crawler.download_image', false) || empty($url)) {
+        if (!Option::get('download_image', false) || empty($url)) {
             return $url;
         }
 
         try {
-            $contents = file_get_contents($url);
             $filename = substr($url, strrpos($url, '/') + 1);
+
+            $img = Image::make($url);
+
+            $img->resize(300, null, function ($constraint) {
+                $constraint->aspectRatio();
+            });
+
             $path = "images/{$slug}/{$filename}";
-            Storage::disk('public')->put($path, $contents);
+
+            Storage::disk('public')->put($path, null);
+
+            $img->save(storage_path("app/public/" . $path));
+
             return Storage::url($path);
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return '';
         }
     }
