@@ -165,7 +165,9 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
         </script>
     @endpush
     <script>
+        var isFetching = false;
         $('.btn-load').click(function(e) {
+            if (isFetching) return;
             const btn = $(this);
             const link = $('textarea[name="link"]').val();
             const from = $('input[name="from"]').val();
@@ -179,6 +181,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             $('.btn-load').html('Đang tải...');
 
             const fetchApi = async (link, from, to) => {
+                isFetching = true;
                 const response = await fetch("{{ backpack_url('plugin/ophim-crawler/fetch') }}?" +
                     new URLSearchParams({
                         link,
@@ -221,6 +224,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 $('input[name="link"]').addClass('is-invalid');
             }).finally(() => {
                 $('.btn-load').html('Tải');
+                isFetching = false;
             })
         })
 

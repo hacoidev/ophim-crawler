@@ -3,16 +3,11 @@
 namespace Ophim\Crawler\OphimCrawler\Controllers;
 
 
-use Ophim\Core\Requests\MovieRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Backpack\Settings\app\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Route;
 use Ophim\Crawler\OphimCrawler\Crawler;
-use Prologue\Alerts\Facades\Alert;
 
 /**
  * Class CrawlController
