@@ -3,10 +3,7 @@
 namespace Ophim\Crawler\OphimCrawler;
 
 use Ophim\Core\Models\Movie;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 use Ophim\Core\Models\Actor;
 use Ophim\Core\Models\Category;
 use Ophim\Core\Models\Director;
@@ -14,7 +11,6 @@ use Ophim\Core\Models\Episode;
 use Ophim\Core\Models\Region;
 use Ophim\Core\Models\Tag;
 use Ophim\Crawler\OphimCrawler\Contracts\BaseCrawler;
-use Intervention\Image\ImageManagerStatic as Image;
 
 class Crawler extends BaseCrawler
 {
@@ -32,16 +28,16 @@ class Crawler extends BaseCrawler
             return;
         }
 
-        $info = $this->transformData($payload);
+        $info = (new Collector($payload, $this->fields))->get();
 
         if ($movie) {
             $movie->update(collect($info)->only($this->fields)->merge(['update_checksum' => md5($body)])->toArray());
         } else {
-            $movie = Movie::create($info->merge([
+            $movie = Movie::create(array_merge($info, [
                 'update_handler' => static::class,
                 'update_identity' => $payload['movie']['_id'],
                 'update_checksum' => md5($body)
-            ])->all());
+            ]));
         }
 
         $this->syncActors($movie, $payload);
@@ -53,9 +49,9 @@ class Crawler extends BaseCrawler
         $this->updateEpisodes($movie, $payload);
     }
 
-    protected function hasChange(Movie $movie, $checksum)
+    protected function hasChange(?Movie $movie, $checksum)
     {
-        return $movie->update_checksum != $checksum;
+        return is_null($movie) || ($movie->update_checksum != $checksum);
     }
 
     protected function checkIsInExcludedList($payload)
@@ -68,70 +64,6 @@ class Crawler extends BaseCrawler
         $newRegions = collect($payload['movie']['country'])->pluck('name')->toArray();
         if (array_intersect($newRegions, $this->excludedRegions)) {
             throw new \Exception("Thuộc quốc gia đã loại trừ");
-        }
-    }
-
-    protected function transformData(array $payload): Collection
-    {
-        $info = $payload['movie'];
-        $episodes = $payload['episodes'];
-
-        $data = collect([
-            'name' => $info['name'],
-            'origin_name' => $info['origin_name'],
-            'publish_year' => $info['year'],
-            'content' => $info['content'],
-            'type' =>  $this->getMovieType($info, $episodes),
-            'status' => $info['status'],
-            'thumb_url' => $this->getImage($info['slug'], $info['thumb_url']),
-            'poster_url' => $this->getImage($info['slug'], $info['poster_url']),
-            'is_copyright' => $info['is_copyright'] != 'off',
-            'trailer_url' => $info['trailer_url'] ?? "",
-            'quality' => $info['quality'],
-            'language' => $info['lang'],
-            'episode_time' => $info['time'],
-            'episode_current' => $info['episode_current'],
-            'episode_total' => $info['episode_total'],
-            'notify' => $info['notify'],
-            'showtimes' => $info['showtimes'],
-            'is_shown_in_theater' => $info['chieurap'],
-        ]);
-
-        return $data;
-    }
-
-    protected function getMovieType($info, $episodes)
-    {
-        return $info['type'] == 'series' ? 'series'
-            : ($info['type'] == 'single' ? 'single'
-                : (count(reset($episodes)['server_data'] ?? []) > 1 ? 'series' : 'single'));
-    }
-
-    protected function getImage($slug, string $url): string
-    {
-        if (!Option::get('download_image', false) || empty($url)) {
-            return $url;
-        }
-
-        try {
-            $filename = substr($url, strrpos($url, '/') + 1);
-
-            $img = Image::make($url);
-
-            $img->resize(300, null, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-
-            $path = "images/{$slug}/{$filename}";
-
-            Storage::disk('public')->put($path, null);
-
-            $img->save(storage_path("app/public/" . $path));
-
-            return Storage::url($path);
-        } catch (\Exception $e) {
-            Log::error($e->getMessage());
-            return '';
         }
     }
 

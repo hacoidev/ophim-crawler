@@ -42,6 +42,67 @@ class Option
                 'label' => 'Tải ảnh khi crawl',
                 'type' => 'checkbox',
             ],
+            'should_resize_thumb' => [
+                'name' => 'should_resize_thumb',
+                'label' => 'Resize ảnh thumb khi tải về',
+                'type' => 'checkbox',
+            ],
+            'resize_thumb_width' => [
+                'name' => 'resize_thumb_width',
+                'label' => 'Chiều rộng ảnh thumb (px)',
+                'type' => 'number',
+                'default' => 200,
+                'attributes' => [
+                    'placeholder' => 'Để trống nếu muốn giữ nguyên tỉ lệ',
+                    'class'       => 'form-control',
+                ],
+                'wrapper' => [
+                    'class'       => 'form-group col-md-6',
+                ]
+            ],
+            'resize_thumb_height' => [
+                'name' => 'resize_thumb_height',
+                'label' => 'Chiều cao ảnh thumb (px)',
+                'type' => 'number',
+                'attributes' => [
+                    'placeholder' => 'Để trống nếu muốn giữ nguyên tỉ lệ',
+                    'class'       => 'form-control',
+                ],
+                'wrapper' => [
+                    'class'       => 'form-group col-md-6',
+                ]
+            ],
+            'should_resize_poster' => [
+                'name' => 'should_resize_poster',
+                'label' => 'Resize ảnh poster khi tải về',
+                'type' => 'checkbox',
+            ],
+            'resize_poster_width' => [
+                'name' => 'resize_poster_width',
+                'label' => 'Chiều rộng ảnh poster (px)',
+                'type' => 'number',
+                'default' => 300,
+                'attributes' => [
+                    'placeholder' => 'Để trống nếu muốn giữ nguyên tỉ lệ',
+                    'class'       => 'form-control',
+                ],
+                'wrapper' => [
+                    'class'       => 'form-group col-md-6',
+                ]
+            ],
+            'resize_poster_height' => [
+                'name' => 'resize_poster_height',
+                'label' => 'Chiều cao ảnh poster (px)',
+                'type' => 'number',
+                'attributes' => [
+                    'placeholder' => 'Để trống nếu muốn giữ nguyên tỉ lệ',
+                    'class'       => 'form-control',
+                ],
+                'wrapper' => [
+                    'class'       => 'form-group col-md-6',
+                ]
+            ],
+
         ];
     }
 }

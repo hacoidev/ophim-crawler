@@ -296,7 +296,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 $(`.crawling-movie[data-slug="${slug}"] .status`).html('Error');
                 $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-failed');
                 $(`#logs`).append(
-                    `<li class="text-danger">${err?.payload?.message ?? 'Unknown error'} : ${slug}</li>`);
+                    `<li class="text-danger">${slug} : ${err?.payload?.message ?? 'Unknown error'}</li>`);
             }).finally(() => {
                 $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-completed');
                 $('.crawled-count').html($('.crawl-completed').length)
