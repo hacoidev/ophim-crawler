@@ -27,20 +27,32 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                         @csrf
                         <div class="form-group col-12 mb-3">
                             <label for="">Link</label>
-                            <textarea class="form-control" rows="10" name="link">https://ophim1.com/danh-sach/phim-moi-cap-nhat</textarea>
+                            <textarea class="form-control" rows="5" name="link">https://ophim1.com/danh-sach/phim-moi-cap-nhat</textarea>
                             <small><i>Mỗi link cách nhau 1 dòng</i></small>
                         </div>
-                        <div class="form-group col-6">
-                            <label>Loại trừ thể loại</label>
-                            <select class="form-control select2" name="excludedCategories[]" multiple>
+                        <div class="form-group col-12">
+                            <label class="text-danger">Loại trừ định dạng</label>
+                            <button id="excluded-all-type" type="button" class="btn btn-sm btn-info">All</button>
+                            <select id="excluded-type" class="form-control select2" name="excludedType[]" multiple>
+                                <option value="series">Phim Bộ</option>
+                                <option value="single">Phim Lẻ</option>
+                                <option value="hoathinh">Hoạt Hình</option>
+                                <option value="tvshows">TV Shows</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-12">
+                            <label class="text-danger">Loại trừ thể loại</label>
+                            <button id="excluded-all-category" type="button" class="btn btn-sm btn-info">All</button>
+                            <select id="excluded-category" class="form-control select2" name="excludedCategories[]" multiple>
                                 @foreach ($categories as $category)
                                     <option value="{{ $category }}">{{ $category }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group col-6">
-                            <label>Loại trừ quốc gia</label>
-                            <select class="form-control select2" name="excludedRegions[]" multiple>
+                        <div class="form-group col-12">
+                            <label class="text-danger">Loại trừ quốc gia</label>
+                            <button id="excluded-all-regions" type="button" class="btn btn-sm btn-info">All</button>
+                            <select id="excluded-regions" class="form-control select2" name="excludedRegions[]" multiple>
                                 @foreach ($regions as $region)
                                     <option value="{{ $region }}">{{ $region }}</option>
                                 @endforeach
@@ -161,7 +173,49 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
         <script>
             $(function() {
                 $(".select2").select2();
+
+                $("#excluded-all-type").on("click", function () {
+                    var allType = [];
+                    if($("#excluded-type").val().length === 0) allType = ['series', 'single', 'hoathinh', 'tvshows'];
+                    $("#excluded-type").val(allType).trigger("change");
+                });
+
+                $("#excluded-all-category").on("click", function () {
+                    var allCategory = [];
+                    if($("#excluded-category").val().length === 0) allCategory = @json($categories);
+                    $("#excluded-category").val(Object.values(allCategory)).trigger("change");
+                });
+
+                $("#excluded-all-regions").on("click", function () {
+                    var allRegions = [];
+                    if($("#excluded-regions").val().length === 0) allRegions = @json($regions);
+                    $("#excluded-regions").val(Object.values(allRegions)).trigger("change");
+                });
             })
+        </script>
+        <script>
+            $(document).ready(function() {
+                $("input[name=from]").val(localStorage.getItem('crawler-page-from') ?? 1);
+                $("input[name=to]").val(localStorage.getItem('crawler-page-to') ?? 1);
+                $("#excluded-type").val(localStorage.getItem('crawler-excluded-type')?.split(",") ?? []).trigger("change");
+                $("#excluded-category").val(localStorage.getItem('crawler-excluded-category')?.split(",") ?? []).trigger("change");
+                $("#excluded-regions").val(localStorage.getItem('crawler-excluded-regions')?.split(",") ?? []).trigger("change");
+                $("#excluded-category").on('change', () => {
+                    localStorage.setItem('crawler-excluded-category', $("#excluded-category").val());
+                });
+                $("#excluded-type").on('change', () => {
+                    localStorage.setItem('crawler-excluded-type', $("#excluded-type").val());
+                });
+                $("#excluded-regions").on('change', () => {
+                    localStorage.setItem('crawler-excluded-regions', $("#excluded-regions").val());
+                });
+                $("input[name=from]").on('change', () => {
+                    localStorage.setItem('crawler-page-from', $("input[name=from]").val());
+                });
+                $("input[name=to]").on('change', () => {
+                    localStorage.setItem('crawler-page-to', $("input[name=to]").val());
+                });
+            });
         </script>
     @endpush
     <script>
@@ -322,6 +376,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
 
             const excludedCategories = $("[name='excludedCategories[]']").val()
             const excludedRegions = $("[name='excludedRegions[]']").val()
+            const excludedType = $("[name='excludedType[]']").val()
 
             const response = await fetch("{{ backpack_url('plugin/ophim-crawler/crawl') }}", {
                 method: 'POST',
@@ -333,7 +388,8 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                     slug,
                     fields,
                     excludedCategories,
-                    excludedRegions
+                    excludedRegions,
+                    excludedType
                 })
             });
 

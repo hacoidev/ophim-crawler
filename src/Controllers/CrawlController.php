@@ -68,7 +68,7 @@ class CrawlController extends CrudController
 
         try {
             $link = str_replace('{slug}', $request['slug'], $pattern);
-            (new Crawler($link, request('fields', []), request('excludedCategories', []), request('excludedRegions', [])))->handle();
+            (new Crawler($link, request('fields', []), request('excludedCategories', []), request('excludedRegions', []), request('excludedType', [])))->handle();
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }

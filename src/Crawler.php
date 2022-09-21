@@ -56,6 +56,11 @@ class Crawler extends BaseCrawler
 
     protected function checkIsInExcludedList($payload)
     {
+        $newType = $payload['movie']['type'];
+        if (in_array($newType, $this->excludedType)) {
+            throw new \Exception("Thuộc định dạng đã loại trừ");
+        }
+
         $newCategories = collect($payload['movie']['category'])->pluck('name')->toArray();
         if (array_intersect($newCategories, $this->excludedCategories)) {
             throw new \Exception("Thuộc thể loại đã loại trừ");
@@ -94,12 +99,13 @@ class Crawler extends BaseCrawler
     protected function syncCategories($movie, array $payload)
     {
         if (!in_array('categories', $this->fields)) return;
-
         $categories = [];
         foreach ($payload['movie']['category'] as $category) {
             if (!trim($category['name'])) continue;
             $categories[] = Category::firstOrCreate(['name' => trim($category['name'])])->id;
         }
+        if($payload['movie']['type'] === 'hoathinh') $categories[] = Category::firstOrCreate(['name' => 'Hoạt Hình'])->id;
+        if($payload['movie']['type'] === 'tvshows') $categories[] = Category::firstOrCreate(['name' => 'TV Shows'])->id;
         $movie->categories()->sync($categories);
     }
 
