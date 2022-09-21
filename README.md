@@ -13,6 +13,9 @@ https://github.com/hacoidev/ophim-core
 ## Install
 - Tại thư mục của Project: `composer require hacoidev/ophim-crawler`
 
+## Update
+- Tại thư mục của Project: `composer update hacoidev/ophim-crawler`
+
 ## Changelog
 ### 22/09/2022
 - Thêm lọc bỏ qua theo định dạng
