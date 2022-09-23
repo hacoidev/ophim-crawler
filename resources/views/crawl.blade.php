@@ -200,12 +200,17 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             $(document).ready(function() {
                 $("input[name=from]").val(localStorage.getItem('crawler-page-from') ?? 1);
                 $("input[name=to]").val(localStorage.getItem('crawler-page-to') ?? 1);
-                $("#excluded-type").val(localStorage.getItem('crawler-excluded-type')?.split(",") ?? []).trigger(
-                    "change");
-                $("#excluded-category").val(localStorage.getItem('crawler-excluded-category')?.split(",") ?? [])
-                    .trigger("change");
-                $("#excluded-regions").val(localStorage.getItem('crawler-excluded-regions')?.split(",") ?? []).trigger(
-                    "change");
+                $("#excluded-type").val(localStorage.getItem('crawler-excluded-type')?.split(",") ?? []).trigger("change");
+                $("#excluded-category").val(localStorage.getItem('crawler-excluded-category')?.split(",") ?? []).trigger("change");
+                $("#excluded-regions").val(localStorage.getItem('crawler-excluded-regions')?.split(",") ?? []).trigger("change");
+
+                let fieldsInStorage = localStorage.getItem('crawler-fields')?.split(",") ?? [];
+
+                let fields = $("input[name='fields[]']").map(function() {
+                    if(fieldsInStorage.includes($(this).val())) $(this).attr("checked", true);
+                    else $(this).attr("checked", false);
+                });
+
                 $("#excluded-category").on('change', () => {
                     localStorage.setItem('crawler-excluded-category', $("#excluded-category").val());
                 });
@@ -220,6 +225,12 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 });
                 $("input[name=to]").on('change', () => {
                     localStorage.setItem('crawler-page-to', $("input[name=to]").val());
+                });
+                $("input[name='fields[]'], #thong-tin-phim-check-all, #tien-do-phim-check-all, #phan-loai-check-all").on('change', () => {
+                    let fields = $("input[name='fields[]']:checked").map(function() {
+                        return $(this).val();
+                    }).get();
+                    localStorage.setItem('crawler-fields', fields);
                 });
             });
         </script>

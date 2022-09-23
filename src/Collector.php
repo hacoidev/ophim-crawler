@@ -53,7 +53,8 @@ class Collector
             $url,
             Option::get('should_resize_thumb', false),
             Option::get('resize_thumb_width'),
-            Option::get('resize_thumb_height')
+            Option::get('resize_thumb_height'),
+            in_array('thumb_url', $this->fields)
         );
     }
 
@@ -64,7 +65,8 @@ class Collector
             $url,
             Option::get('should_resize_poster', false),
             Option::get('resize_poster_width'),
-            Option::get('resize_poster_height')
+            Option::get('resize_poster_height'),
+            in_array('poster_url', $this->fields)
         );
     }
 
@@ -76,14 +78,18 @@ class Collector
                 : (count(reset($episodes)['server_data'] ?? []) > 1 ? 'series' : 'single'));
     }
 
-    protected function getImage($slug, string $url, $shouldResize = false, $width = null, $height = null): string
+    protected function getImage($slug, string $url, $shouldResize = false, $width = null, $height = null, $in_fields = true): string
     {
         if (!Option::get('download_image', false) || empty($url)) {
             return $url;
         }
-
         try {
             $filename = substr($url, strrpos($url, '/') + 1);
+            $path = "images/{$slug}/{$filename}";
+
+            if (Storage::disk('public')->exists($path) && !$in_fields) {
+                return Storage::url($path);
+            }
 
             $img = Image::make($url);
 
@@ -92,8 +98,6 @@ class Collector
                     $constraint->aspectRatio();
                 });
             }
-
-            $path = "images/{$slug}/{$filename}";
 
             Storage::disk('public')->put($path, null);
 
