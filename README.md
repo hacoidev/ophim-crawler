@@ -17,6 +17,10 @@ https://github.com/hacoidev/ophim-core
 - Tại thư mục của Project: `composer update hacoidev/ophim-crawler`
 
 ## Changelog
+### 23/09/2022
+- Ghi nhớ fields crawl + download images
+- Fix crawl pages hạn chế timeout khi nhiều page
+
 ### 22/09/2022
 - Thêm lọc bỏ qua theo định dạng
 - Tạo thể loại đối với định dạng là `hoạt hình` và `tv shows`
