@@ -43,7 +43,8 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                         <div class="form-group col-12">
                             <label class="text-danger">Loại trừ thể loại</label>
                             <button id="excluded-all-category" type="button" class="btn btn-sm btn-info">All</button>
-                            <select id="excluded-category" class="form-control select2" name="excludedCategories[]" multiple>
+                            <select id="excluded-category" class="form-control select2" name="excludedCategories[]"
+                                multiple>
                                 @foreach ($categories as $category)
                                     <option value="{{ $category }}">{{ $category }}</option>
                                 @endforeach
@@ -174,21 +175,23 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             $(function() {
                 $(".select2").select2();
 
-                $("#excluded-all-type").on("click", function () {
+                $("#excluded-all-type").on("click", function() {
                     var allType = [];
-                    if($("#excluded-type").val().length === 0) allType = ['series', 'single', 'hoathinh', 'tvshows'];
+                    if ($("#excluded-type").val().length === 0) allType = ['series', 'single', 'hoathinh',
+                        'tvshows'
+                    ];
                     $("#excluded-type").val(allType).trigger("change");
                 });
 
-                $("#excluded-all-category").on("click", function () {
+                $("#excluded-all-category").on("click", function() {
                     var allCategory = [];
-                    if($("#excluded-category").val().length === 0) allCategory = @json($categories);
+                    if ($("#excluded-category").val().length === 0) allCategory = @json($categories);
                     $("#excluded-category").val(Object.values(allCategory)).trigger("change");
                 });
 
-                $("#excluded-all-regions").on("click", function () {
+                $("#excluded-all-regions").on("click", function() {
                     var allRegions = [];
-                    if($("#excluded-regions").val().length === 0) allRegions = @json($regions);
+                    if ($("#excluded-regions").val().length === 0) allRegions = @json($regions);
                     $("#excluded-regions").val(Object.values(allRegions)).trigger("change");
                 });
             })
@@ -197,9 +200,12 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             $(document).ready(function() {
                 $("input[name=from]").val(localStorage.getItem('crawler-page-from') ?? 1);
                 $("input[name=to]").val(localStorage.getItem('crawler-page-to') ?? 1);
-                $("#excluded-type").val(localStorage.getItem('crawler-excluded-type')?.split(",") ?? []).trigger("change");
-                $("#excluded-category").val(localStorage.getItem('crawler-excluded-category')?.split(",") ?? []).trigger("change");
-                $("#excluded-regions").val(localStorage.getItem('crawler-excluded-regions')?.split(",") ?? []).trigger("change");
+                $("#excluded-type").val(localStorage.getItem('crawler-excluded-type')?.split(",") ?? []).trigger(
+                    "change");
+                $("#excluded-category").val(localStorage.getItem('crawler-excluded-category')?.split(",") ?? [])
+                    .trigger("change");
+                $("#excluded-regions").val(localStorage.getItem('crawler-excluded-regions')?.split(",") ?? []).trigger(
+                    "change");
                 $("#excluded-category").on('change', () => {
                     localStorage.setItem('crawler-excluded-category', $("#excluded-category").val());
                 });
@@ -224,15 +230,14 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             if (isFetching) return;
             const btn = $(this);
             const link = $('textarea[name="link"]').val();
-            const from = $('input[name="from"]').val();
-            const to = $('input[name="to"]').val();
+            const from = parseInt($('input[name="from"]').val());
+            const to = parseInt($('input[name="to"]').val());
 
             if (!link) {
                 $('textarea[name="link"]').addClass('is-invalid');
                 return;
             }
             $('textarea[name="link"]').removeClass('is-invalid');
-            $('.btn-load').html('Đang tải...');
 
             const fetchApi = async (link, from, to) => {
                 isFetching = true;
@@ -255,31 +260,47 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 }
             }
 
-            fetchApi(link, from, to).then(res => {
-                if (res.payload.length > 0) {
-                    const template = (data) => {
-                        let html = '';
-                        data.forEach((item, i) => {
-                            html += `<div class="form-check checkbox">
+            const crawlPages = (current) => {
+                if (current > to) {
+                    next(this)
+                    $('.btn-load').html('Tải');
+                    isFetching = false;
+                    return
+                }
+
+                $('.btn-load').html(`Đang tải...: Page ${current}/${to}`);
+
+                fetchApi(link, current, current).then(res => {
+                    if (res.payload.length > 0) {
+                        const template = (data) => {
+                            let html = '';
+                            data.forEach((item, i) => {
+                                html += `<div class="form-check checkbox">
                                         <input class="movie-checkbox" id="movie-${i}" type="checkbox" value="${encodeURI(JSON.stringify(item))}" checked>
                                         <label class="d-inline" for="movie-${i}">${item.name}</label>
                                     </div>`;
-                        })
-                        return html;
+                            })
+                            return html;
+                        }
+
+                        let curTotal = parseInt($('.total-movie-count').html());
+                        let selectedCount = parseInt($('.selected-movie-count').html());
+                        let movieList = $('#movie-list').html();
+                        $('.total-movie-count').html(curTotal + res.payload.length)
+                        $('.selected-movie-count').html(selectedCount + res.payload.length)
+                        $('#movie-list').html(movieList + template(res.payload))
                     }
+                }).catch(err => {
+                    $('input[name="link"]').addClass('is-invalid');
+                }).finally(() => {
+                    crawlPages(current + 1)
+                })
+            }
 
-                    $('.total-movie-count').html(res.payload.length)
-                    $('.selected-movie-count').html(res.payload.length)
-                    $('#movie-list').html(template(res.payload))
-
-                    next(this)
-                }
-            }).catch(err => {
-                $('input[name="link"]').addClass('is-invalid');
-            }).finally(() => {
-                $('.btn-load').html('Tải');
-                isFetching = false;
-            })
+            $('.total-movie-count').html(0);
+            $('.selected-movie-count').html(0);
+            $('#movie-list').html("");
+            crawlPages(from);
         })
 
         $('.btn-process').click(function() {
