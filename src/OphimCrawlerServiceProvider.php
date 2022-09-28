@@ -18,6 +18,7 @@ class OphimCrawlerServiceProvider extends SP
 
     public function register()
     {
+
         config(['plugins' => array_merge(config('plugins', []), [
             'hacoidev/ophim-crawler' =>
             [
@@ -28,6 +29,12 @@ class OphimCrawlerServiceProvider extends SP
                     ['name' => 'Crawler', 'icon' => 'la la-hand-grab-o', 'url' => backpack_url('/plugin/ophim-crawler')],
                     ['name' => 'Option', 'icon' => 'la la-cog', 'url' => backpack_url('/plugin/ophim-crawler/options')],
                 ],
+            ]
+        ])]);
+        config(['ophim.updaters' => array_merge(config('ophim.updaters', []), [
+            [
+                'name' => 'Ophim Crawler',
+                'handler' => 'Ophim\Crawler\OphimCrawler\Crawler'
             ]
         ])]);
     }
