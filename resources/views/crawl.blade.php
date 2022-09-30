@@ -59,14 +59,31 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group col-6">
-                            <label>Từ page</label>
-                            <input type="number" class="form-control" name="from" min="0" value="1">
+                        <div class="form-group col-12">
+                            <div class="row">
+                                <div class="form-group col-3">
+                                    <label>Từ page</label>
+                                    <input type="number" class="form-control" name="from" min="0" value="1">
+                                </div>
+                                <div class="form-group col-3">
+                                    <label>Tới page</label>
+                                    <input type="number" class="form-control" name="to" min="0" value="1">
+                                </div>
+                                <div class="col-6">
+                                    <div class="row">
+                                        <div class="form-group col-6">
+                                            <label>Chờ crawl từ (ms)</label>
+                                            <input type="number" class="form-control" name="timeout_from" value="">
+                                        </div>
+                                        <div class="form-group col-6">
+                                            <label>đến (ms)</label>
+                                            <input type="number" class="form-control" name="timeout_to" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group col-6">
-                            <label>Tới page</label>
-                            <input type="number" class="form-control" name="to" min="0" value="1">
-                        </div>
+
                         <div class="form-group col-6">
                             <button class="btn btn-primary btn-load">Tải</button>
                         </div>
@@ -148,6 +165,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                                     style="height: 20rem;background-color: #f7f7f7">
 
                                 </div>
+                                <small><i id="wait_message"></i></small>
                                 <div class="w-100 px-3 col-form-label overflow-auto mx-3" id="logs"
                                     style="height: 5rem;background-color: #f7f7f7">
 
@@ -200,14 +218,24 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             $(document).ready(function() {
                 $("input[name=from]").val(localStorage.getItem('crawler-page-from') ?? 1);
                 $("input[name=to]").val(localStorage.getItem('crawler-page-to') ?? 1);
-                $("#excluded-type").val(localStorage.getItem('crawler-excluded-type')?.split(",") ?? []).trigger("change");
-                $("#excluded-category").val(localStorage.getItem('crawler-excluded-category')?.split(",") ?? []).trigger("change");
-                $("#excluded-regions").val(localStorage.getItem('crawler-excluded-regions')?.split(",") ?? []).trigger("change");
+                $("#excluded-type").val(localStorage.getItem('crawler-excluded-type')?.split(",") ?? []).trigger(
+                    "change");
+                $("#excluded-category").val(localStorage.getItem('crawler-excluded-category')?.split(",") ?? [])
+                    .trigger("change");
+                $("#excluded-regions").val(localStorage.getItem('crawler-excluded-regions')?.split(",") ?? []).trigger(
+                    "change");
+
+                let timeout_from = JSON.parse(localStorage.getItem("timeout_from")) != null ? localStorage.getItem(
+                    "timeout_from") : 1000;
+                let timeout_to = JSON.parse(localStorage.getItem("timeout_to")) != null ? localStorage.getItem(
+                    "timeout_to") : 3000;
+                $("input[name=timeout_from]").val(timeout_from);
+                $("input[name=timeout_to]").val(timeout_to);
 
                 let fieldsInStorage = localStorage.getItem('crawler-fields')?.split(",") ?? [];
 
                 let fields = $("input[name='fields[]']").map(function() {
-                    if(fieldsInStorage.includes($(this).val())) $(this).attr("checked", true);
+                    if (fieldsInStorage.includes($(this).val())) $(this).attr("checked", true);
                     else $(this).attr("checked", false);
                 });
 
@@ -226,12 +254,20 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 $("input[name=to]").on('change', () => {
                     localStorage.setItem('crawler-page-to', $("input[name=to]").val());
                 });
-                $("input[name='fields[]'], #thong-tin-phim-check-all, #tien-do-phim-check-all, #phan-loai-check-all").on('change', () => {
-                    let fields = $("input[name='fields[]']:checked").map(function() {
-                        return $(this).val();
-                    }).get();
-                    localStorage.setItem('crawler-fields', fields);
+                $("input[name=timeout_from]").change(() => {
+                    localStorage.setItem("timeout_from", $("input[name=timeout_from]").val());
                 });
+                $("input[name=timeout_to]").change(() => {
+                    localStorage.setItem("timeout_to", $("input[name=timeout_to]").val());
+                });
+
+                $("input[name='fields[]'], #thong-tin-phim-check-all, #tien-do-phim-check-all, #phan-loai-check-all")
+                    .on('change', () => {
+                        let fields = $("input[name='fields[]']:checked").map(function() {
+                            return $(this).val();
+                        }).get();
+                        localStorage.setItem('crawler-fields', fields);
+                    });
             });
         </script>
     @endpush
@@ -271,8 +307,22 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 }
             }
 
+            const template = (data) => {
+                let html = '';
+                data.forEach((item, i) => {
+                    html += `<div class="form-check checkbox">
+                                        <input class="movie-checkbox" id="movie-${i}" type="checkbox" value="${encodeURI(JSON.stringify(item))}" checked>
+                                        <label class="d-inline" for="movie-${i}">${item.name}</label>
+                                    </div>`;
+                })
+                return html;
+            }
+            var listMovies = [];
             const crawlPages = (current) => {
                 if (current > to) {
+                    listMovies.sort(() => Math.random() - 0.5);
+                    let movieList = $('#movie-list').html();
+                    $('#movie-list').html(movieList + template(listMovies))
                     next(this)
                     $('.btn-load').html('Tải');
                     isFetching = false;
@@ -283,23 +333,11 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
 
                 fetchApi(link, current, current).then(res => {
                     if (res.payload.length > 0) {
-                        const template = (data) => {
-                            let html = '';
-                            data.forEach((item, i) => {
-                                html += `<div class="form-check checkbox">
-                                        <input class="movie-checkbox" id="movie-${i}" type="checkbox" value="${encodeURI(JSON.stringify(item))}" checked>
-                                        <label class="d-inline" for="movie-${i}">${item.name}</label>
-                                    </div>`;
-                            })
-                            return html;
-                        }
-
+                        listMovies = listMovies.concat(res.payload);
                         let curTotal = parseInt($('.total-movie-count').html());
                         let selectedCount = parseInt($('.selected-movie-count').html());
-                        let movieList = $('#movie-list').html();
                         $('.total-movie-count').html(curTotal + res.payload.length)
                         $('.selected-movie-count').html(selectedCount + res.payload.length)
-                        $('#movie-list').html(movieList + template(res.payload))
                     }
                 }).catch(err => {
                     $('input[name="link"]').addClass('is-invalid');
@@ -371,29 +409,46 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             $(el).closest('.steps').prev().removeClass('d-none');
         }
 
+
+        var wait = false;
         const crawl = (el) => {
             const slug = $(el).data('slug');
-
             if (!slug) return;
-            processMovie(slug).then(res => {
-                $(`.crawling-movie[data-slug="${slug}"]`).removeClass('text-info');
-                $(`.crawling-movie[data-slug="${slug}"]`).addClass('text-success');
-                $(`.crawling-movie[data-slug="${slug}"] .status`).html('OK');
-                $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-success');
-            }).catch(err => {
-                $(`.crawling-movie[data-slug="${slug}"]`).removeClass('text-info');
-                $(`.crawling-movie[data-slug="${slug}"]`).addClass('text-danger');
-                $(`.crawling-movie[data-slug="${slug}"] .status`).html('Error');
-                $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-failed');
-                $(`#logs`).append(
-                    `<li class="text-danger">${slug} : ${err?.payload?.message ?? 'Unknown error'}</li>`);
-            }).finally(() => {
-                $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-completed');
-                $('.crawled-count').html($('.crawl-completed').length)
-                $('.crawl-success-count').html($('.crawl-success').length)
-                $('.crawl-failed-count').html($('.crawl-failed').length)
-                crawl($(el).next('.crawling-movie'))
-            })
+
+            var wait_timeout = 100;
+            if (wait) {
+                let timeout_from = $("input[name=timeout_from]").val();
+                let timeout_to = $("input[name=timeout_to]").val();
+                let maximum = Math.max(timeout_from, timeout_to);
+                let minimum = Math.min(timeout_from, timeout_to);
+                wait_timeout = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+            }
+            $(`.crawling-movie[data-slug="${slug}"] .status`).html(`Chờ ${wait_timeout}ms`);
+            setTimeout(() => {
+                processMovie(slug).then(res => {
+                    $(`.crawling-movie[data-slug="${slug}"]`).removeClass('text-info');
+                    $(`.crawling-movie[data-slug="${slug}"]`).addClass('text-success');
+                    $(`.crawling-movie[data-slug="${slug}"] .status`).html('OK');
+                    $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-success');
+                    wait = res.payload.wait;
+                }).catch(err => {
+                    $(`.crawling-movie[data-slug="${slug}"]`).removeClass('text-info');
+                    $(`.crawling-movie[data-slug="${slug}"]`).addClass('text-danger');
+                    $(`.crawling-movie[data-slug="${slug}"] .status`).html('Error');
+                    $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-failed');
+                    $(`#logs`).append(
+                        `<li class="text-danger">${slug} : ${err?.payload?.message ?? 'Unknown error'}</li>`);
+                    wait = false;
+                }).finally(() => {
+                    $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-completed');
+                    $('.crawled-count').html($('.crawl-completed').length)
+                    $('.crawl-success-count').html($('.crawl-success').length)
+                    $('.crawl-failed-count').html($('.crawl-failed').length)
+                    crawl($(el).next('.crawling-movie'))
+                })
+            }, wait_timeout);
+
+
         }
 
         const processMovie = async (slug) => {

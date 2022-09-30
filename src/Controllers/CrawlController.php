@@ -65,15 +65,13 @@ class CrawlController extends CrudController
     public function crawl(Request $request)
     {
         $pattern = sprintf('%s/phim/{slug}', config('ophim_crawler.domain', 'https://ophim1.com'));
-
         try {
             $link = str_replace('{slug}', $request['slug'], $pattern);
-            (new Crawler($link, request('fields', []), request('excludedCategories', []), request('excludedRegions', []), request('excludedType', [])))->handle();
+            $crawler = (new Crawler($link, request('fields', []), request('excludedCategories', []), request('excludedRegions', []), request('excludedType', [])))->handle();
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return response()->json(['message' => $e->getMessage(), 'wait' => false], 500);
         }
-
-        return response()->json(['message' => 'OK']);
+        return response()->json(['message' => 'OK', 'wait' => $crawler ?? true]);
     }
 
     protected function movieUpdateOptions(): array

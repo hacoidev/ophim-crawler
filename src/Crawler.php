@@ -25,7 +25,7 @@ class Crawler extends BaseCrawler
             ->first();
 
         if (!$this->hasChange($movie, md5($body))) {
-            return;
+            return false;
         }
 
         $info = (new Collector($payload, $this->fields))->get();
