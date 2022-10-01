@@ -225,9 +225,9 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 $("#excluded-regions").val(localStorage.getItem('crawler-excluded-regions')?.split(",") ?? []).trigger(
                     "change");
 
-                let timeout_from = JSON.parse(localStorage.getItem("timeout_from")) != null ? localStorage.getItem(
+                let timeout_from = (localStorage.getItem("timeout_from")) ? localStorage.getItem(
                     "timeout_from") : 1000;
-                let timeout_to = JSON.parse(localStorage.getItem("timeout_to")) != null ? localStorage.getItem(
+                let timeout_to = (localStorage.getItem("timeout_to")) ? localStorage.getItem(
                     "timeout_to") : 3000;
                 $("input[name=timeout_from]").val(timeout_from);
                 $("input[name=timeout_to]").val(timeout_to);
@@ -437,7 +437,8 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                     $(`.crawling-movie[data-slug="${slug}"] .status`).html('Error');
                     $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-failed');
                     $(`#logs`).append(
-                        `<li class="text-danger">${slug} : ${err?.payload?.message ?? 'Unknown error'}</li>`);
+                        `<li class="text-danger">${slug} : ${err?.payload?.message ?? 'Unknown error'}</li>`
+                        );
                     wait = false;
                 }).finally(() => {
                     $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-completed');
