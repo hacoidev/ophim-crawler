@@ -3,9 +3,7 @@
     "description": "ophim crawler",
     "type": "package",
     "require": {
-        "php": "^7|^8",
-        "laravel/framework": "^6|^7|^8|^9",
-        "hacoidev/ophim-core": "dev-main",
+        "hacoidev/ophim-core": "^1.0.0",
         "intervention/image": "^2.7"
     },
     "license": "MIT",
