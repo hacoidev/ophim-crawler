@@ -24,9 +24,9 @@ class Crawler extends BaseCrawler
             ->where('update_identity', $payload['movie']['_id'])
             ->first();
 
-        // if (!$this->hasChange($movie, md5($body))) {
-        //     return false;
-        // }
+        if (!$this->hasChange($movie, md5($body))) {
+            return false;
+        }
 
         $info = (new Collector($payload, $this->fields))->get();
 
