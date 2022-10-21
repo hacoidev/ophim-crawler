@@ -17,6 +17,10 @@ https://github.com/hacoidev/ophim-core
 - Tại thư mục của Project: `composer update hacoidev/ophim-crawler`
 
 ## Changelog
+### 1.0.3
+- Fix Logic save field crawler
+### 1.0.2
+- enable check hasChange
 ### 1.0.1
 - Fix sync episodes
 ### 23/09/2022

@@ -232,11 +232,11 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 $("input[name=timeout_from]").val(timeout_from);
                 $("input[name=timeout_to]").val(timeout_to);
 
-                let fieldsInStorage = localStorage.getItem('crawler-fields')?.split(",") ?? [];
+                let fieldsInStorage = localStorage.getItem('crawler-fields-uncheck')?.split(",") ?? [];
 
                 let fields = $("input[name='fields[]']").map(function() {
-                    if (fieldsInStorage.includes($(this).val())) $(this).attr("checked", true);
-                    else $(this).attr("checked", false);
+                    if (fieldsInStorage.includes($(this).val())) $(this).attr("checked", false);
+                    else $(this).attr("checked", true);
                 });
 
                 $("#excluded-category").on('change', () => {
@@ -263,10 +263,10 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
 
                 $("input[name='fields[]'], #thong-tin-phim-check-all, #tien-do-phim-check-all, #phan-loai-check-all")
                     .on('change', () => {
-                        let fields = $("input[name='fields[]']:checked").map(function() {
+                        let fields = $("input[name='fields[]']:not(:checked)").map(function() {
                             return $(this).val();
                         }).get();
-                        localStorage.setItem('crawler-fields', fields);
+                        localStorage.setItem('crawler-fields-uncheck', fields);
                     });
             });
         </script>
