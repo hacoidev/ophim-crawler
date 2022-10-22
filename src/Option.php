@@ -51,7 +51,7 @@ class Option
                 'name' => 'resize_thumb_width',
                 'label' => 'Chiều rộng ảnh thumb (px)',
                 'type' => 'number',
-                'default' => 200,
+                'default' => 300,
                 'attributes' => [
                     'placeholder' => 'Để trống nếu muốn giữ nguyên tỉ lệ',
                     'class'       => 'form-control',
@@ -81,7 +81,7 @@ class Option
                 'name' => 'resize_poster_width',
                 'label' => 'Chiều rộng ảnh poster (px)',
                 'type' => 'number',
-                'default' => 300,
+                'default' => 450,
                 'attributes' => [
                     'placeholder' => 'Để trống nếu muốn giữ nguyên tỉ lệ',
                     'class'       => 'form-control',
