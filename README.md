@@ -2,10 +2,13 @@
 
 ## Demo
 ### Trang Crawl
-![Alt text](https://i.ibb.co/HFhXff1/Crawler-Page.png "Crawler Page")
+![Alt text](https://i.ibb.co/WPy9Hp7/CRAWLER-INDEX.png "Crawler Page")
 
 ### Trang Cấu Hình
-![Alt text](https://i.ibb.co/4WgxX2Z/Crawler-Options.png "Options Page")
+![Alt text](https://i.ibb.co/zmDYwRd/CRAWLER-OPTION.png "Options Page")
+
+### Cấu Hình Tự Động
+![Alt text](https://i.ibb.co/5jY3s2P/CRAWLER-SCHEDULE.png "Options Page")
 
 ## Requirements
 https://github.com/hacoidev/ophim-core
@@ -17,6 +20,8 @@ https://github.com/hacoidev/ophim-core
 - Tại thư mục của Project: `composer update hacoidev/ophim-crawler`
 
 ## Changelog
+### 1.1.0
+- Update crawler schedule
 ### 1.0.3
 - Fix Logic save field crawler
 ### 1.0.2

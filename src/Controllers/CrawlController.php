@@ -25,6 +25,7 @@ class CrawlController extends CrudController
 
             foreach ($request['link'] as $link) {
                 if (preg_match('/(.*?)(\/phim\/)(.*?)/', $link)) {
+                    $link = sprintf('%s/phim/%s', config('ophim_crawler.domain', 'https://ophim1.com'), explode('phim/', $link)[1]);
                     $response = json_decode(file_get_contents($link), true);
                     $data->push(collect($response['movie'])->only('name', 'slug')->toArray());
                 } else {
@@ -67,7 +68,7 @@ class CrawlController extends CrudController
         $pattern = sprintf('%s/phim/{slug}', config('ophim_crawler.domain', 'https://ophim1.com'));
         try {
             $link = str_replace('{slug}', $request['slug'], $pattern);
-            $crawler = (new Crawler($link, request('fields', []), request('excludedCategories', []), request('excludedRegions', []), request('excludedType', [])))->handle();
+            $crawler = (new Crawler($link, request('fields', []), request('excludedCategories', []), request('excludedRegions', []), request('excludedType', []), request('forceUpdate', false)))->handle();
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage(), 'wait' => false], 500);
         }

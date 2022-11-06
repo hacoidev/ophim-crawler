@@ -123,6 +123,14 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 <div class="card-body">
                     <div class="row">
                         <div class="col-12 mx-3">
+                            <div class="row mb-3">
+                                <div class="col-12 col-md-6 form-check checkbox">
+                                    <input class="form-check-input" type="checkbox" name="force_update" value="">
+                                    <label class="d-inline">
+                                        Bắt buộc cập nhật
+                                    </label>
+                                </div>
+                            </div>
                             @foreach ($fields ?? [] as $groupLabel => $options)
                                 <div class="row mb-3">
                                     <div class="col-12 px-0">
@@ -465,7 +473,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
             const excludedCategories = $("[name='excludedCategories[]']").val()
             const excludedRegions = $("[name='excludedRegions[]']").val()
             const excludedType = $("[name='excludedType[]']").val()
-
+            const forceUpdate = ($("[name='force_update']").prop('checked') == true) ? true : false;
             const response = await fetch("{{ backpack_url('plugin/ophim-crawler/crawl') }}", {
                 method: 'POST',
                 headers: {
@@ -477,7 +485,8 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                     fields,
                     excludedCategories,
                     excludedRegions,
-                    excludedType
+                    excludedType,
+                    forceUpdate
                 })
             });
 
