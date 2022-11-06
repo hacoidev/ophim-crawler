@@ -1,4 +1,4 @@
-# OPHIMCRAWLER
+# OPHIM CRAWLER
 
 ## Demo
 ### Trang Crawl
@@ -18,6 +18,9 @@ https://github.com/hacoidev/ophim-core
 
 ## Update
 - Tại thư mục của Project: `composer update hacoidev/ophim-crawler`
+
+## Setup Crontab
+[Setup crontab, add this entry](https://github.com/hacoidev/ophim-core#reset-view-counter)
 
 ## Changelog
 ### 1.1.0
