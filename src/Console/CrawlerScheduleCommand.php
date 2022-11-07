@@ -77,7 +77,8 @@ class CrawlerScheduleCommand extends Command
                     Option::get('crawler_schedule_fields', Option::getAllOptions()['crawler_schedule_fields']['default']),
                     Option::get('crawler_schedule_excludedCategories', []),
                     Option::get('crawler_schedule_excludedRegions', []),
-                    Option::get('crawler_schedule_excludedType', [])))
+                    Option::get('crawler_schedule_excludedType', []),
+                    false))
                     ->handle();
             } catch (\Exception $e) {
                 $this->logger->error(sprintf("%s ERROR: %s", $movie['slug'], $e->getMessage()));
