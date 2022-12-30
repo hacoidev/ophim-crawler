@@ -84,6 +84,7 @@ class Collector
             return $url;
         }
         try {
+            $url = strtok($url, '?');
             $filename = substr($url, strrpos($url, '/') + 1);
             $path = "images/{$slug}/{$filename}";
 
@@ -91,7 +92,17 @@ class Collector
                 return Storage::url($path);
             }
 
-            $img = Image::make($url);
+            $img = null;
+            $flag = true;
+            $try = 1;
+            while ($flag && $try <= 3):
+                try {
+                    $img = Image::make($url);
+                    $flag = false;
+                } catch (\Exception $e) {
+                }
+                $try++;
+            endwhile;
 
             if ($shouldResize) {
                 $img->resize($width, $height, function ($constraint) {

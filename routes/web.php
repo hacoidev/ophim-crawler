@@ -21,4 +21,5 @@ Route::group([
     Route::put('/plugin/ophim-crawler/options', 'CrawlerSettingController@updateOptions');
     Route::get('/plugin/ophim-crawler/fetch', 'CrawlController@fetch');
     Route::post('/plugin/ophim-crawler/crawl', 'CrawlController@crawl');
+    Route::post('/plugin/ophim-crawler/get-movies', 'CrawlController@getMoviesFromParams');
 });

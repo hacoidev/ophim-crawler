@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Ophim\Crawler\OphimCrawler\Crawler;
+use Ophim\Core\Models\Movie;
 
 /**
  * Class CrawlController
@@ -110,5 +111,15 @@ class CrawlController extends CrudController
                 'studios' => 'Studio',
             ]
         ];
+    }
+
+    public function getMoviesFromParams(Request $request) {
+        $field = explode('-', request('params'))[0];
+        $val = explode('-', request('params'))[1];
+        if (!$val) {
+            return Movie::where($field, $val)->orWhere($field, NULL)->get();
+        } else {
+            return Movie::where($field, $val)->get();
+        }
     }
 }

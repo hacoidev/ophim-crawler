@@ -27,6 +27,14 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                         @csrf
                         <div class="form-group col-12 mb-3">
                             <label for="">Link</label>
+                            <div class="form-group">
+                                <select class="custom-select col-4" name="movies-get-params">
+                                    <option value="thumb_url-">Thiếu thumb</option>
+                                    <option value="poster_url-">Thiếu poster</option>
+                                    <option value="status-ongoing">Đang chiếu</option>
+                                </select>
+                                <button class="btn btn-sm btn-primary" id="movies-get-handle">Lấy danh sách</button>
+                            </div>
                             <textarea class="form-control" rows="5" name="link">https://ophim1.com/danh-sach/phim-moi-cap-nhat</textarea>
                             <small><i>Mỗi link cách nhau 1 dòng</i></small>
                         </div>
@@ -502,5 +510,31 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 payload: await response.json()
             }
         }
+
+        $("#movies-get-handle").click(async function() {
+            const apiDomain = "{{ config('ophim_crawler.domain', 'https://ophim1.com') }}";
+            let params = $("select[name=movies-get-params]").find(":selected").val();
+
+            const response = await fetch("{{ backpack_url('plugin/ophim-crawler/get-movies') }}", {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                body: JSON.stringify({
+                    params: params
+                })
+            });
+
+            if (response.status >= 200 && response.status < 300) {
+                let payload = await response.json();
+                let xhtmlMovies = [];
+                for (let index = 0; index < payload.length; index++) {
+                    const movie = payload[index];
+                    xhtmlMovies.push(`${apiDomain}/phim/id/${movie.update_identity}`);
+                }
+                $("textarea[name='link']").val(xhtmlMovies.join('\n'));
+            }
+        })
     </script>
 @endsection
