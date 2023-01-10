@@ -10,11 +10,13 @@ class Collector
 {
     protected $fields;
     protected $payload;
+    protected $forceUpdate;
 
-    public function __construct(array $payload, array $fields)
+    public function __construct(array $payload, array $fields, $forceUpdate)
     {
         $this->fields = $fields;
         $this->payload = $payload;
+        $this->forceUpdate = $forceUpdate;
     }
 
     public function get(): array
@@ -53,8 +55,7 @@ class Collector
             $url,
             Option::get('should_resize_thumb', false),
             Option::get('resize_thumb_width'),
-            Option::get('resize_thumb_height'),
-            in_array('thumb_url', $this->fields)
+            Option::get('resize_thumb_height')
         );
     }
 
@@ -65,8 +66,7 @@ class Collector
             $url,
             Option::get('should_resize_poster', false),
             Option::get('resize_poster_width'),
-            Option::get('resize_poster_height'),
-            in_array('poster_url', $this->fields)
+            Option::get('resize_poster_height')
         );
     }
 
@@ -78,7 +78,7 @@ class Collector
                 : (count(reset($episodes)['server_data'] ?? []) > 1 ? 'series' : 'single'));
     }
 
-    protected function getImage($slug, string $url, $shouldResize = false, $width = null, $height = null, $in_fields = true): string
+    protected function getImage($slug, string $url, $shouldResize = false, $width = null, $height = null): string
     {
         if (!Option::get('download_image', false) || empty($url)) {
             return $url;
@@ -88,7 +88,7 @@ class Collector
             $filename = substr($url, strrpos($url, '/') + 1);
             $path = "images/{$slug}/{$filename}";
 
-            if (Storage::disk('public')->exists($path) && $in_fields == false) {
+            if (Storage::disk('public')->exists($path) && $this->forceUpdate == false) {
                 return Storage::url($path);
             }
 

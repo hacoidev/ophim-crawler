@@ -28,7 +28,7 @@ class Crawler extends BaseCrawler
             return false;
         }
 
-        $info = (new Collector($payload, $this->fields))->get();
+        $info = (new Collector($payload, $this->fields, $this->forceUpdate))->get();
 
         if ($movie) {
             $movie->updated_at = now();
