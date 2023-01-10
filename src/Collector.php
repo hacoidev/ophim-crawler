@@ -88,21 +88,11 @@ class Collector
             $filename = substr($url, strrpos($url, '/') + 1);
             $path = "images/{$slug}/{$filename}";
 
-            if (Storage::disk('public')->exists($path) && !$in_fields) {
+            if (Storage::disk('public')->exists($path) && $in_fields == false) {
                 return Storage::url($path);
             }
 
-            $img = null;
-            $flag = true;
-            $try = 1;
-            while ($flag && $try <= 3):
-                try {
-                    $img = Image::make($url);
-                    $flag = false;
-                } catch (\Exception $e) {
-                }
-                $try++;
-            endwhile;
+            $img = Image::make($url);
 
             if ($shouldResize) {
                 $img->resize($width, $height, function ($constraint) {
