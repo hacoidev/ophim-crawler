@@ -33,7 +33,7 @@ class Collector
             'status' => $info['status'],
             'thumb_url' => $this->getThumbImage($info['slug'], $info['thumb_url']),
             'poster_url' => $this->getPosterImage($info['slug'], $info['poster_url']),
-            'is_copyright' => $info['is_copyright'] != 'off',
+            'is_copyright' => $info['is_copyright'],
             'trailer_url' => $info['trailer_url'] ?? "",
             'quality' => $info['quality'],
             'language' => $info['lang'],
