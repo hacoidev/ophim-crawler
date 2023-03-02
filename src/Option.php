@@ -52,15 +52,22 @@ class Option
 
     public static function getAllOptions()
     {
-        $categories = Cache::remember('ophim_categories', 86400, function () {
-            $data = json_decode(file_get_contents(sprintf('%s/the-loai', config('ophim_crawler.domain', 'https://ophim1.com'))), true) ?? [];
-            return collect($data)->pluck('name', 'name')->toArray();
-        });
+        $categories = [];
+        $regions = [];
+        try {
+            $categories = Cache::remember('ophim_categories', 86400, function () {
+                $data = json_decode(file_get_contents(sprintf('%s/the-loai', config('ophim_crawler.domain', 'https://ophim1.com'))), true) ?? [];
+                return collect($data)->pluck('name', 'name')->toArray();
+            });
 
-        $regions = Cache::remember('ophim_regions', 86400, function () {
-            $data = json_decode(file_get_contents(sprintf('%s/quoc-gia', config('ophim_crawler.domain', 'https://ophim1.com'))), true) ?? [];
-            return collect($data)->pluck('name', 'name')->toArray();
-        });
+            $regions = Cache::remember('ophim_regions', 86400, function () {
+                $data = json_decode(file_get_contents(sprintf('%s/quoc-gia', config('ophim_crawler.domain', 'https://ophim1.com'))), true) ?? [];
+                return collect($data)->pluck('name', 'name')->toArray();
+            });
+        } catch (\Throwable $th) {
+
+        }
+
 
         $fields = [
             'episodes' => 'Tập mới',
