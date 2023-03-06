@@ -1,12 +1,12 @@
 @extends(backpack_view('blank'))
 
 @php
-$defaultBreadcrumbs = [
-    trans('backpack::crud.admin') => backpack_url('dashboard'),
-    'Crawler' => backpack_url('plugin/ophim-crawler'),
-];
+    $defaultBreadcrumbs = [
+        trans('backpack::crud.admin') => backpack_url('dashboard'),
+        'Crawler' => backpack_url('plugin/ophim-crawler'),
+    ];
 
-$breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
+    $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
 @endphp
 
 @section('header')
@@ -334,6 +334,8 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 return html;
             }
             var listMovies = [];
+
+            // 1 Link: Crawl từng page
             const crawlPages = (current) => {
                 if (current > to) {
                     listMovies.sort(() => Math.random() - 0.5);
@@ -344,9 +346,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                     isFetching = false;
                     return
                 }
-
                 $('.btn-load').html(`Đang tải...: Page ${current}/${to}`);
-
                 fetchApi(link, current, current).then(res => {
                     if (res.payload.length > 0) {
                         listMovies = listMovies.concat(res.payload);
@@ -362,10 +362,42 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                 })
             }
 
+            // Nhiều link: crawl từng link
+            const crawlMultiLink = (arrLink, current) => {
+                let currentLink = arrLink[current];
+                if (!currentLink) {
+                    listMovies.sort(() => Math.random() - 0.5);
+                    let movieList = $('#movie-list').html();
+                    $('#movie-list').html(movieList + template(listMovies))
+                    next(this)
+                    $('.btn-load').html('Tải');
+                    isFetching = false;
+                    return
+                }
+                $('.btn-load').html(`Đang tải...: Link ${current + 1}/${arrLink.length}`);
+                fetchApi(currentLink, 1, 1).then(res => {
+                    if (res.payload.length > 0) {
+                        listMovies = listMovies.concat(res.payload);
+                        let curTotal = parseInt($('.total-movie-count').html());
+                        let selectedCount = parseInt($('.selected-movie-count').html());
+                        $('.total-movie-count').html(curTotal + res.payload.length)
+                        $('.selected-movie-count').html(selectedCount + res.payload.length)
+                    }
+                }).catch(err => {
+                    $('input[name="link"]').addClass('is-invalid');
+                }).finally(() => {
+                    crawlMultiLink(arrLink, current + 1)
+                })
+            }
+
             $('.total-movie-count').html(0);
             $('.selected-movie-count').html(0);
             $('#movie-list').html("");
-            crawlPages(from);
+            if (link.split("\n").length > 1) {
+                crawlMultiLink(link.split("\n"), 0)
+            } else {
+                crawlPages(from);
+            }
         })
 
         $('.btn-process').click(function() {
@@ -454,7 +486,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                     $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-failed');
                     $(`#logs`).append(
                         `<li class="text-danger">${slug} : ${err?.payload?.message ?? 'Unknown error'}</li>`
-                        );
+                    );
                     wait = false;
                 }).finally(() => {
                     $(`.crawling-movie[data-slug="${slug}"]`).addClass('crawl-completed');

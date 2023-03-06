@@ -107,7 +107,7 @@ class Collector
             return Storage::url($path);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            return '';
+            return $url;
         }
     }
 }
