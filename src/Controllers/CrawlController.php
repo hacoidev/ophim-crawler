@@ -123,7 +123,7 @@ class CrawlController extends CrudController
         $field = explode('-', request('params'))[0];
         $val = explode('-', request('params'))[1];
         if (!$val) {
-            return Movie::where($field, $val)->orWhere($field, NULL)->get();
+            return Movie::where($field, $val)->orWhere($field, 'like', '%.com%')->orWhere($field, NULL)->get();
         } else {
             return Movie::where($field, $val)->get();
         }
