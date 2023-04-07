@@ -92,7 +92,16 @@ class Collector
                 return Storage::url($path);
             }
 
-            $img = Image::make($url);
+            // Khởi tạo curl để tải về hình ảnh
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_HEADER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_BINARYTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36");
+            $image_data = curl_exec($ch);
+            curl_close($ch);
+
+            $img = Image::make($image_data);
 
             if ($shouldResize) {
                 $img->resize($width, $height, function ($constraint) {
