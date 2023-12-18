@@ -5,17 +5,23 @@ namespace Ophim\Crawler\OphimCrawler;
 use Backpack\Settings\app\Models\Setting;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 
 class Option
 {
     public static function get($name, $default = null)
     {
-        $entry = static::getEntry();
-        $fields = array_column(static::getAllOptions(), 'value', 'name');
-
-        $options = array_merge($fields, json_decode($entry->value, true) ?? []);
-
-        return isset($options[$name]) ? $options[$name] : $default;
+        try {
+            $entry = static::getEntry();
+            $fields = array_column(static::getAllOptions(), 'value', 'name');
+    
+            $options = array_merge($fields, json_decode($entry->value, true) ?? []);
+    
+            return isset($options[$name]) ? $options[$name] : $default;
+        } catch (QueryException $e) {
+            Log::warning(__CLASS__ . '::' . __FUNCTION__.':'.__LINE__ . ' - ' . $e->getMessage());
+            return $default;
+        }
     }
 
     // public static function set($name, $value)
